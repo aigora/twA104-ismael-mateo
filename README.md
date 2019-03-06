@@ -5,8 +5,9 @@ El proyecto consistirá en una maqueta basada en Arduino completamente funcional
 ## Integrantes del equipo
 
 **Ismael Fernández de la Cotera Lorenzo** - _ismaelfernandezdelacoteralorenzo_
+
 **Mateo Agustoni Goycoa** - _magustoni_
 
 ## Objetivos del trabajo
 
-Buscamos principalmente introducirnos en Arduino, y con él en el mundo de la electrónica. Gracias a este sencillo proyecto tendremos nuestra primera toma de contacto con el material que acostumbraremos a usar en un futuro.
+Buscamos principalmente introducirnos en Arduino, y con él en el mundo de la electrónica. Gracias a este sencillo proyecto tendremos nuestra primera toma de contacto con el material que acostumbraremos a usar en un futuro: soldadores, protoplacas, LEDs, resistencias... combinándolos entre sí y adquiriendo así experiencia en el manejo de todas las herramientas necesarias.
