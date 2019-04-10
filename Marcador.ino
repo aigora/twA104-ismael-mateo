@@ -1,11 +1,12 @@
 /*
     Name:       Marcador.ino
-    Created:	09/04/2019 20:59:53
+    Created:  09/04/2019 20:59:53
     Author:     MATEO-LENOVO\Mateo
 */
 
-#define TCUARTO 5 //s
+#define TCUARTO 600 //s
 #define TBOCINA 2 //s
+#define DELAY 350 //ms
 
 void setup() {
 	Serial.begin(9600);
@@ -18,45 +19,44 @@ void setup() {
 	pinMode(8, INPUT); //-1 equipo B
 	pinMode(9, INPUT); //Falta equipo A
 	pinMode(10, INPUT); //Falta equipo B
+	pinMode(11, OUTPUT);							 //Quitar despues
 }
 
 void loop() {
+
 	//Asignaciones iniciales
-	float time, inst0, inst1, tJuego;
-	boolean crono;
-	int ptEquipoA, ptEquipoB, flEquipoA, flEquipoB;
-	if (millis() < 50) {
-		time = 0;
-		inst0 = 0;
-		inst1 = 0;
-		crono = false;
-		ptEquipoA = 0;
-		ptEquipoB = 0;
-		flEquipoA = 0;
-		flEquipoB = 0;
-	}
-
-
+	static float time = 0, inst0 = 0, inst1 = 0, tJuego;
+	static boolean crono = false;
+	static int ptEquipoA = 0, ptEquipoB = 0, flEquipoA = 0, flEquipoB = 0;
+	
 	//Tiempo
-	if (digitalRead(3) == LOW && crono == true) { //Pause crono
-		crono == false;
+	if (digitalRead(3) == HIGH && crono == false) { //Pause crono
 
+		crono = true;
+		delay(DELAY);
 	}
-	if (digitalRead(3) == LOW && crono == false) { //Play crono
-		crono == true;
+	if (digitalRead(3) == HIGH && crono == true) { //Play crono
 
+		crono = false;
+		delay(DELAY);
 	}
-	if (digitalRead(4) == HIGH) //Reset crono
-		time = 0;
+  
+	if (digitalRead(4) == HIGH) { //Reset crono
 
+		//time = 0;
+		//crono = false;					Esta desactivado porque al estar sin cable hace cosas no deseadas
+	}
+
+	tJuego = TCUARTO - time;
+	inst0 = inst1;
+	inst1 = millis() / 1000;
 	if (crono == true) { //Crono (solo si activado)
 
-		inst0 = inst1;
-		inst1 = millis() / 1000;
 		time += inst1 - inst0;
-		tJuego = TCUARTO - time;
+		digitalWrite(11, HIGH);								//Quitar despues
 	}
-
+	else
+		digitalWrite(11, LOW);
 
 	//Bocina
 	if ((tJuego<0 && tJuego>-TBOCINA))
@@ -70,17 +70,22 @@ void loop() {
 		ptEquipoA++;
 	if (digitalRead(6) == HIGH)
 		ptEquipoA--;
+
 	//Puntos equipo B
 	if (digitalRead(7) == HIGH)
 		ptEquipoB++;
 	if (digitalRead(8) == HIGH)
 		ptEquipoB--;
+
 	//Faltas equipo A
 	if (digitalRead(9) == HIGH)
 		flEquipoA++;
+
 	//Faltas equipo B
 	if (digitalRead(10) == HIGH)
 		flEquipoB++;
+
 	//Cuarto
 
+	//Display
 }
