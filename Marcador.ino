@@ -1,7 +1,7 @@
 /*
-    Name:       Marcador.ino
-    Created:  09/04/2019 20:59:53
-    Author:     MATEO-LENOVO\Mateo
+	Name:       Marcador.ino
+	Created:  09/04/2019 20:59:53
+	Author:     MATEO-LENOVO\Mateo
 */
 
 #define TCUARTO 600 //s
@@ -13,79 +13,198 @@ void setup() {
 	pinMode(2, OUTPUT); //Bocina auto
 	pinMode(3, INPUT); //Play pause crono
 	pinMode(4, INPUT); //Reset crono
-	pinMode(5, INPUT); //+1 equipo A
-	pinMode(6, INPUT); //-1 equipo A
-	pinMode(7, INPUT); //+1 equipo B
-	pinMode(8, INPUT); //-1 equipo B
-	pinMode(9, INPUT); //Falta equipo A
-	pinMode(10, INPUT); //Falta equipo B
-	pinMode(11, OUTPUT);							 //Quitar despues
 }
 
 void loop() {
 
 	//Asignaciones iniciales
-	static float time = 0, inst0 = 0, inst1 = 0, tJuego;
+	static float time = 0, instI = 0, instF = 0, tCuarto;
 	static boolean crono = false;
-	static int ptEquipoA = 0, ptEquipoB = 0, flEquipoA = 0, flEquipoB = 0;
-	
+	static int puntosA = 0, puntosB = 0, faltasA = 0, faltasB = 0, cuarto = 0;
+  if(millis()%1000==00){
+	Serial.print((int)tCuarto/60);
+  Serial.print(":");
+  Serial.println(((float)tCuarto/60-(int)tCuarto/60)*60);
+	Serial.print("FaltasA=");
+  Serial.println(faltasA);
+	Serial.print("PuntosA=");
+  Serial.println(puntosA);
+  Serial.print("FaltasB=");
+  Serial.println(faltasB);
+  Serial.print("PuntosB=");
+  Serial.println(puntosB);
+  }
+
 	//Tiempo
-	if (digitalRead(3) == HIGH && crono == false) { //Pause crono
+	if (digitalRead(3) == HIGH && crono == false) { //Play time
 
 		crono = true;
 		delay(DELAY);
 	}
-	if (digitalRead(3) == HIGH && crono == true) { //Play crono
+	if (digitalRead(3) == HIGH && crono == true) { //Pause time
 
 		crono = false;
 		delay(DELAY);
 	}
-  
-	if (digitalRead(4) == HIGH) { //Reset crono
 
-		//time = 0;
-		//crono = false;					Esta desactivado porque al estar sin cable hace cosas no deseadas
+	if (digitalRead(4) == HIGH) { //Reset time
+
+		time = 0;
+		crono = false;
 	}
 
-	tJuego = TCUARTO - time;
-	inst0 = inst1;
-	inst1 = millis() / 1000;
-	if (crono == true) { //Crono (solo si activado)
-
-		time += inst1 - inst0;
-		digitalWrite(11, HIGH);								//Quitar despues
+	instI = instF;
+	instF = millis() / 1000;
+	tCuarto = TCUARTO - time;
+	if (crono == true) {
+		time += instF - instI;
 	}
-	else
-		digitalWrite(11, LOW);
-
-	//Bocina
-	if ((tJuego<0 && tJuego>-TBOCINA))
-		digitalWrite(2, HIGH);
-	else
-		digitalWrite(2, LOW);
-
 
 	//Puntos equipo A
-	if (digitalRead(5) == HIGH)
-		ptEquipoA++;
-	if (digitalRead(6) == HIGH)
-		ptEquipoA--;
+	if (analogRead(A0) > 340 && analogRead(A0) < 350) {
+		puntosA++;
+		delay(DELAY);
+	}
+	if (analogRead(A0) > 250 && analogRead(A0) < 260) {
+		puntosA--;
+		delay(DELAY);
+	}
+  if(puntosA<0)
+    puntosA=0;
 
 	//Puntos equipo B
-	if (digitalRead(7) == HIGH)
-		ptEquipoB++;
-	if (digitalRead(8) == HIGH)
-		ptEquipoB--;
-
+	/*if (analogRead(A1) > 340 && analogRead(A1) < 350) {
+		puntosB++;
+		delay(DELAY);
+	}
+	if (analogRead(A1) > 250 && analogRead(A1) < 260) {
+		puntosB--;
+		delay(DELAY);
+	}
+  if(puntosB<0)
+    puntosB=0;*/
+    
 	//Faltas equipo A
-	if (digitalRead(9) == HIGH)
-		flEquipoA++;
+	if (analogRead(A0) > 510 && analogRead(A0) < 520) {
+		faltasA++;
+		delay(DELAY);
+	}
+	/*if (faltasA == 0) {
+		pinMode(11, OUTPUT);
+		Encender(11);
+		pinMode(12, OUTPUT);
+		Apagar(12);
+		pinMode(13, INPUT);
+		delay(DELAY);
+	}
+	if (faltasA == 1) {
+		pinMode(13, OUTPUT);
+		Encender(13);
+		pinMode(11, OUTPUT);
+		Apagar(11);
+		pinMode(12, INPUT);
+		delay(DELAY);
+	}
+	if (faltasA == 2) {
+		pinMode(12, OUTPUT);
+		Encender(12);
+		pinMode(13, OUTPUT);
+		Apagar(13);
+		pinMode(11, INPUT);
+		delay(DELAY);
+	}
+	if (faltasA == 3) {
+		pinMode(11, OUTPUT);
+		Encender(11);
+		pinMode(13, OUTPUT);
+		Apagar(13);
+		pinMode(12, INPUT);
+		delay(DELAY);
+	}
+	if (faltasA == 4) {
+		pinMode(12, OUTPUT);
+		Encender(12);
+		pinMode(11, OUTPUT);
+		Apagar(11);
+		pinMode(13, INPUT);
+		delay(DELAY);
+	}
+	if (faltasA == 5) {
+		pinMode(13, OUTPUT);
+		Encender(13);
+		pinMode(12, OUTPUT);
+		Apagar(12);
+		pinMode(11, INPUT);
+		delay(DELAY);
+	}*/
+	if (faltasA == 6)
+		faltasA = 0;
 
 	//Faltas equipo B
-	if (digitalRead(10) == HIGH)
-		flEquipoB++;
+	/*if (analogRead(A1) > 510 && analogRead(A1) < 520) {
+		faltasB++;
+		delay(DELAY);
+	}
+
+	if (faltasB == 0) {
+
+	}
+	if (faltasB == 1) {
+
+	}
+	if (faltasB == 2) {
+
+	}
+	if (faltasB == 3) {
+
+	}
+	if (faltasB == 4) {
+
+	}
+	if (faltasB == 5) {
+
+	}
+	if (faltasB > 5)
+		faltasB = 0;*/
 
 	//Cuarto
+	if (tCuarto == 0)
+		FinCuarto(&crono, &faltasA, &faltasB, &time, &cuarto);
 
+	//Final
+	if (cuarto > 4)
+		FinPartido(&crono, &faltasA, &faltasB, &time, &cuarto, &puntosA, &puntosB);
 	//Display
+		/**/
+}
+
+//Funciones
+void Bocina() {
+	Encender(2);
+	delay(1000 * TBOCINA);
+	Apagar(2);
+}
+void Encender(int Pin) {
+	digitalWrite(Pin, HIGH);
+}
+void Apagar(int Pin) {
+	digitalWrite(Pin, LOW);
+}
+void FinCuarto(boolean *crono, int *faltasA, int *faltasB, float *time, int *cuarto){
+		*crono = false;
+		Bocina();
+		*faltasA = 0;
+		*faltasB = 0;
+		*time = 0;
+		*cuarto++;
+}
+void FinPartido(boolean *crono, int *faltasA, int *faltasB, float *time, int *cuarto, int *puntosA, int*puntosB) {
+	*crono = false;
+	Bocina();
+	/*Fichero*/
+	*puntosA = 0;
+	*puntosB = 0;
+	*faltasA = 0;
+	*faltasB = 0;
+	*time = 0;
 }
