@@ -1,6 +1,6 @@
 /*
 	Name:       Marcador.ino
-	Created:  09/04/2019 20:59:53
+	Created:  09/04/2019 20:59:83
 	Author:     MATEO-LENOVO\Mateo
 */
 
@@ -21,19 +21,21 @@ void loop() {
 	static float time = 0, instI = 0, instF = 0, tCuarto;
 	static boolean crono = false;
 	static int puntosA = 0, puntosB = 0, faltasA = 0, faltasB = 0, cuarto = 0;
-  if(millis()%1000==00){
-	Serial.print((int)tCuarto/60);
-  Serial.print(":");
-  Serial.println(((float)tCuarto/60-(int)tCuarto/60)*60);
-	Serial.print("FaltasA=");
-  Serial.println(faltasA);
-	Serial.print("PuntosA=");
-  Serial.println(puntosA);
-  Serial.print("FaltasB=");
-  Serial.println(faltasB);
-  Serial.print("PuntosB=");
-  Serial.println(puntosB);
-  }
+
+	//Probador en monitor serial mientras no tengamos el display
+	/*if(millis()%1000==00){
+		Serial.print((int)tCuarto/60);
+		Serial.print(":");
+		Serial.println(((float)tCuarto/60-(int)tCuarto/60)*60);
+		Serial.print("FaltasA=");
+		Serial.println(faltasA);
+		Serial.print("PuntosA=");
+		Serial.println(puntosA);
+		Serial.print("FaltasB=");
+		Serial.println(faltasB);
+		Serial.print("PuntosB=");
+		Serial.println(puntosB);
+	}*/
 
 	//Tiempo
 	if (digitalRead(3) == HIGH && crono == false) { //Play time
@@ -69,11 +71,11 @@ void loop() {
 		puntosA--;
 		delay(DELAY);
 	}
-  if(puntosA<0)
-    puntosA=0;
+	if(puntosA<0)
+		puntosA=0;
 
 	//Puntos equipo B
-	/*if (analogRead(A1) > 340 && analogRead(A1) < 350) {
+	if (analogRead(A1) > 340 && analogRead(A1) < 350) {
 		puntosB++;
 		delay(DELAY);
 	}
@@ -81,8 +83,8 @@ void loop() {
 		puntosB--;
 		delay(DELAY);
 	}
-  if(puntosB<0)
-    puntosB=0;*/
+	if(puntosB<0)
+		puntosB=0;
     
 	//Faltas equipo A
 	if (analogRead(A0) > 510 && analogRead(A0) < 520) {
@@ -90,50 +92,50 @@ void loop() {
 		delay(DELAY);
 	}
 	/*if (faltasA == 0) {
-		pinMode(11, OUTPUT);
-		Encender(11);
-		pinMode(12, OUTPUT);
-		Apagar(12);
-		pinMode(13, INPUT);
+		pinMode(5, OUTPUT);
+		Encender(5);
+		pinMode(6, OUTPUT);
+		Apagar(6);
+		pinMode(7, INPUT);
 		delay(DELAY);
 	}
 	if (faltasA == 1) {
-		pinMode(13, OUTPUT);
-		Encender(13);
-		pinMode(11, OUTPUT);
-		Apagar(11);
-		pinMode(12, INPUT);
+		pinMode(7, OUTPUT);
+		Encender(7);
+		pinMode(5, OUTPUT);
+		Apagar(5);
+		pinMode(6, INPUT);
 		delay(DELAY);
 	}
 	if (faltasA == 2) {
-		pinMode(12, OUTPUT);
-		Encender(12);
-		pinMode(13, OUTPUT);
-		Apagar(13);
-		pinMode(11, INPUT);
+		pinMode(6, OUTPUT);
+		Encender(6);
+		pinMode(7, OUTPUT);
+		Apagar(7);
+		pinMode(5, INPUT);
 		delay(DELAY);
 	}
 	if (faltasA == 3) {
-		pinMode(11, OUTPUT);
-		Encender(11);
-		pinMode(13, OUTPUT);
-		Apagar(13);
-		pinMode(12, INPUT);
+		pinMode(5, OUTPUT);
+		Encender(5);
+		pinMode(7, OUTPUT);
+		Apagar(7);
+		pinMode(6, INPUT);
 		delay(DELAY);
 	}
 	if (faltasA == 4) {
-		pinMode(12, OUTPUT);
-		Encender(12);
-		pinMode(11, OUTPUT);
-		Apagar(11);
-		pinMode(13, INPUT);
+		pinMode(6, OUTPUT);
+		Encender(6);
+		pinMode(5, OUTPUT);
+		Apagar(5);
+		pinMode(7, INPUT);
 		delay(DELAY);
 	}
 	if (faltasA == 5) {
-		pinMode(13, OUTPUT);
-		Encender(13);
-		pinMode(12, OUTPUT);
-		Apagar(12);
+		pinMode(7, OUTPUT);
+		Encender(7);
+		pinMode(6, OUTPUT);
+		Apagar(6);
 		pinMode(11, INPUT);
 		delay(DELAY);
 	}*/
@@ -141,31 +143,61 @@ void loop() {
 		faltasA = 0;
 
 	//Faltas equipo B
-	/*if (analogRead(A1) > 510 && analogRead(A1) < 520) {
+	if (analogRead(A1) > 510 && analogRead(A1) < 520) {
 		faltasB++;
 		delay(DELAY);
 	}
 
-	if (faltasB == 0) {
-
+	/*if (faltasB == 0) {
+		pinMode(8, OUTPUT);
+		Encender(8);
+		pinMode(9, OUTPUT);
+		Apagar(9);
+		pinMode(10, INPUT);
+		delay(DELAY);
 	}
 	if (faltasB == 1) {
-
+		pinMode(10, OUTPUT);
+		Encender(10);
+		pinMode(8, OUTPUT);
+		Apagar(8);
+		pinMode(9, INPUT);
+		delay(DELAY);
 	}
 	if (faltasB == 2) {
-
+		pinMode(9, OUTPUT);
+		Encender(9);
+		pinMode(10, OUTPUT);
+		Apagar(10);
+		pinMode(8, INPUT);
+		delay(DELAY);
 	}
 	if (faltasB == 3) {
-
+		pinMode(8, OUTPUT);
+		Encender(8);
+		pinMode(10, OUTPUT);
+		Apagar(10);
+		pinMode(9, INPUT);
+		delay(DELAY);
 	}
 	if (faltasB == 4) {
-
+		pinMode(9, OUTPUT);
+		Encender(9);
+		pinMode(8, OUTPUT);
+		Apagar(8);
+		pinMode(10, INPUT);
+		delay(DELAY);
 	}
-	if (faltasB == 5) {
-
-	}
-	if (faltasB > 5)
-		faltasB = 0;*/
+	if (faltasB == 8) {
+		pinMode(10, OUTPUT);
+		Encender(10);
+		pinMode(9, OUTPUT);
+		Apagar(9);
+		pinMode(11, INPUT);
+		delay(DELAY);
+	}*/
+	if (faltasB > 8)
+		faltasB = 0;
 
 	//Cuarto
 	if (tCuarto == 0)
@@ -202,6 +234,8 @@ void FinPartido(boolean *crono, int *faltasA, int *faltasB, float *time, int *cu
 	*crono = false;
 	Bocina();
 	/*Fichero*/
+	/*Parar hasta pulsar boton*/
+	/*Guardar datos en estructura dinamica*/
 	*puntosA = 0;
 	*puntosB = 0;
 	*faltasA = 0;
