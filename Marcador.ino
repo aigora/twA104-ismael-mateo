@@ -23,24 +23,24 @@ typedef struct {
 
 void setup() {
 
-  Serial.begin(9600);
+	Serial.begin(9600);
 	pinMode(2, OUTPUT); //Bocina auto
 	pinMode(3, INPUT); //Play pause crono
 	pinMode(4, INPUT); //Reset crono
 	pinMode(11, INPUT); //Continuar al siguiente partido
-	pinMode(12, INPUT); //Enviar datos al final del partido
+	pinMode(12, INPUT); //Mostrar datos al final del partido
 }
 
 void loop() {
 
 	//Asignaciones iniciales
 	static float time = 0, instI = 0, instF = 0;
-	static boolean crono = false, declareFl = false, dispPuntosFl = true, dispTimeFl = true, dispCuartoFl = true, faltasAFl = true, faltasBFl = true;
+	static boolean crono = false, displayFl = true, dispPuntosFl = true, dispTimeFl = true, dispCuartoFl = true, faltasAFl = true, faltasBFl = true;
 	static int puntosA = 0, puntosB = 0, tCuarto;
 	static byte cuarto = 1, faltasA = 0, faltasB = 0;
 	static Adafruit_SSD1306 display;
 
-	if (declareFl == false) {
+	if (displayFl == true) { //Inicio del display
 
 		delay(100);
 		display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
@@ -55,7 +55,7 @@ void loop() {
 		display.print("A");
 		display.setCursor(110, 10);
 		display.print("B");
-		declareFl = true;
+		displayFl = false;
 	}
 
 	//Tiempo
@@ -80,7 +80,7 @@ void loop() {
 	instI = instF;
 	instF = millis() / 1000;
 	tCuarto = TCUARTO - time;
-	if (crono == true) {
+	if (crono == true) { //Cuenta tiempo (si activado)
 
 		time += instF - instI;
 		dispTimeFl = true;
@@ -177,7 +177,7 @@ void loop() {
 			Encender(7);
 			pinMode(6, OUTPUT);
 			Apagar(6);
-			pinMode(11, INPUT);
+			pinMode(5, INPUT);
 			delay(DELAY);
 			faltasAFl = false;
 		}
@@ -253,7 +253,7 @@ void loop() {
 		faltasB = 0;
 
 	//Display
-	if (dispTimeFl == true) {
+	if (dispTimeFl == true) { //Tiempo
 		if (tCuarto == 600) {
 
 			display.fillRect(35, 15, 70, 25, BLACK);
@@ -283,7 +283,7 @@ void loop() {
 		dispTimeFl = false;
 	}
 
-	if (dispCuartoFl == true) {
+	if (dispCuartoFl == true) { //Cuarto
 
 		display.fillRect(60, 40, 20, 25, BLACK);
 		display.setCursor(60, 40);
@@ -292,7 +292,7 @@ void loop() {
 		dispCuartoFl = false;
 	}
 
-	if (dispPuntosFl == true){
+	if (dispPuntosFl == true){ //Puntos A y B
 
 		display.fillRect(5, 45, 25, 25, BLACK);
 		if (puntosA < 10) {
@@ -310,7 +310,7 @@ void loop() {
 			}
 		}
 
-		display.fillRect(110, 45, 25, 25, BLACK);
+		display.fillRect(105, 45, 25, 25, BLACK);
 		if (puntosB < 10) {
 			display.setCursor(110, 45);
 			display.print(puntosB);
@@ -333,7 +333,7 @@ void loop() {
 	if (tCuarto == 0 && crono == true)
 		FinCuarto(&crono, &faltasA, &faltasB, &time, &cuarto, &dispTimeFl, &faltasAFl, &faltasBFl, &dispCuartoFl);
 	if (cuarto > 4)
-		FinPartido(&cuarto, &puntosA, &puntosB, &dispPuntosFl, &dispCuartoFl);
+		FinPartido(&cuarto, &puntosA, &puntosB, &dispPuntosFl, &dispCuartoFl, &display, &displayFl, &dispTimeFl);
 }
 
 //Funciones
@@ -362,19 +362,20 @@ void FinCuarto(boolean *crono, byte *faltasA, byte *faltasB, float *time, byte *
   if(*cuarto < 5)
 	  *dispCuartoFl = true;
 }
-void FinPartido(byte *cuarto, int *puntosA, int*puntosB, boolean *dispPuntosFl, boolean *dispCuartoFl) {
+void FinPartido(byte *cuarto, int *puntosA, int*puntosB, boolean *dispPuntosFl, boolean *dispCuartoFl, Adafruit_SSD1306 *display, boolean *displayFl, boolean *dispTimeFl) {
 
 	static int cont = 0;
 	cont++;
-	Save(cont, *puntosA, *puntosB);
+	Save(cont, *puntosA, *puntosB, display, displayFl, dispPuntosFl, dispTimeFl, dispCuartoFl);
 	*cuarto = 1;
 	*puntosA = 0;
 	*puntosB = 0;
 	*dispPuntosFl = true;
 	*dispCuartoFl = true;
 }
-void Save(int cont, int puntosA, int puntosB) {
+void Save(int cont, int puntosA, int puntosB, Adafruit_SSD1306 *display, boolean *displayFl, boolean *dispPuntosFl, boolean *dispTimeFl, boolean *dispCuartoFl) {
 
+	//Guardar resultados
 	partido *log, *aux;
 	if (cont == 1)
 		log = (partido*)malloc(sizeof(partido));
@@ -389,17 +390,31 @@ void Save(int cont, int puntosA, int puntosB) {
 	log[cont-1].puntosA = puntosA;
 	log[cont-1].puntosB = puntosB;
 
+	//Parar marcador hasta pulsar boton
+	int i = 0;
 	while (digitalRead(11) != HIGH) {
+		//Mostrar resultados guardados por pantalla
 		if (digitalRead(12) == HIGH) {
-			for (int i = 0;i < cont;i++) {
-				Serial.print("Partido ");
-				Serial.print(i);
-				Serial.print(":");
-				Serial.print(log[i].puntosA);
-				Serial.print("-");
-				Serial.println(log[i].puntosB);
-			}
+			(*display).clearDisplay();
+			(*display).setCursor(15,20);
+			(*display).print("Partido ");
+			(*display).print(i+1);
+			(*display).setCursor(35, 40);
+			(*display).print(log[i].puntosA);
+			(*display).print(" - ");
+			(*display).print(log[i].puntosB);
+			(*display).display();
 			delay(DELAY);
+			i++;
+			if (i == cont)
+				i = 0;
 		}
 	}
+
+	//Flags para reiniciar display
+	(*display).clearDisplay();
+	*displayFl = true;
+	*dispPuntosFl = true;
+	*dispTimeFl = true;
+	*dispCuartoFl = true;
 }
