@@ -23,10 +23,11 @@ typedef struct {
 
 void setup() {
 
-	Serial.begin(9600);
-	pinMode(2, OUTPUT); //Bocina auto
-	pinMode(3, INPUT); //Play pause crono
-	pinMode(4, INPUT); //Reset crono
+	pinMode(0, OUTPUT); //Bocina auto
+	pinMode(1, INPUT); //Play pause crono
+	pinMode(2, INPUT); //Reset crono
+	pinMode(3, INPUT); //Faltas A
+	pinMode(4, INPUT); //Faltas B
 	pinMode(11, INPUT); //Continuar al siguiente partido
 	pinMode(12, INPUT); //Mostrar datos al final del partido
 }
@@ -59,18 +60,18 @@ void loop() {
 	}
 
 	//Tiempo
-	if (digitalRead(3) == HIGH && crono == false) { //Play time
+	if (digitalRead(1) == HIGH && crono == false) { //Play time
 
 		crono = true;
 		delay(DELAY);
 	}
-	if (digitalRead(3) == HIGH && crono == true) { //Pause time
+	if (digitalRead(1) == HIGH && crono == true) { //Pause time
 
 		crono = false;
 		delay(DELAY);
 	}
 
-	if (digitalRead(4) == HIGH) { //Reset time
+	if (digitalRead(2) == HIGH) { //Reset time
 
 		time = 0;
 		crono = false;
@@ -87,13 +88,13 @@ void loop() {
 	}
 
 	//Puntos equipo A
-	if (analogRead(A0) > 340 && analogRead(A0) < 350) { //Puntos +1
+	if (analogRead(A0) > 800) { //Puntos +1
 
 		puntosA++;
 		delay(DELAY);
 		dispPuntosFl = true;
 	}
-	if (analogRead(A0) > 250 && analogRead(A0) < 260) { //Puntos -1
+	if (analogRead(A1) > 800) { //Puntos -1
 
 		puntosA--;
 		delay(DELAY);
@@ -103,13 +104,13 @@ void loop() {
 		puntosA = 0;
 
 	//Puntos equipo B
-	if (analogRead(A1) > 340 && analogRead(A1) < 350) { //Puntos +1
+	if (analogRead(A2) > 800) { //Puntos +1
 
 		puntosB++;
 		delay(DELAY);
 		dispPuntosFl = true;
 	}
-	if (analogRead(A1) > 250 && analogRead(A1) < 260) { //Puntos -1
+	if (analogRead(A3) > 800) { //Puntos -1
 
 		puntosB--;
 		delay(DELAY);
@@ -119,7 +120,7 @@ void loop() {
 		puntosB=0;
     
 	//Faltas equipo A
-	if (analogRead(A0) > 510 && analogRead(A0) < 520) { //Faltas +1
+	if (digitalRead(3) == HIGH) { //Faltas +1
 
 		faltasA++;
 		delay(DELAY);
@@ -186,7 +187,7 @@ void loop() {
 		faltasA = 0;
 
 	//Faltas equipo B
-	if (analogRead(A1) > 510 && analogRead(A1) < 520) { //Faltas +1
+	if (digitalRead(4) == HIGH) { //Faltas +1
 
 		faltasB++;
 		delay(DELAY);
@@ -338,7 +339,7 @@ void loop() {
 
 //Funciones
 void Bocina() {
-	Encender(2);
+	Encender(0);
 	delay(1000 * TBOCINA);
 	Apagar(2);
 }
