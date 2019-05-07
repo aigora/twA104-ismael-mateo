@@ -14,9 +14,10 @@
 #include <SPI.h>
 #include <stdlib.h>
 
-#define TCUARTO 600 //s
+#define TCUARTO 5 //s
 #define TBOCINA 2 //s
 #define DELAY 350 //ms
+#define CUARTO 4
 
 typedef struct {
 	int puntosA, puntosB;
@@ -31,7 +32,12 @@ void Save(int puntosA, int puntosB, Adafruit_SSD1306 *display, boolean *displayF
 
 void setup(){
 
+	pinMode(2, INPUT); //Reset
+	pinMode(3, INPUT); //Falta A
+	pinMode(4, INPUT); //Falta B
 	pinMode(11, OUTPUT); //Bocina auto
+	pinMode(12, INPUT); //Continuar / mostrar siguiente partido
+	pinMode(13, INPUT); //Play / pause
 	pinMode(A0, INPUT); //Puntos A++
 	pinMode(A1, INPUT); //Puntos A--
 	pinMode(A2, INPUT); //Puntos B++
@@ -45,7 +51,7 @@ void loop() {
 	static float time = 0, instI = 0, instF = 0;
 	static boolean crono = false, displayFl = true, dispPuntosFl = true, dispCuartoFl = true, faltasAFl = true, faltasBFl = true;
 	static int puntosA = 0, puntosB = 0, tCuarto;
-	static byte cuarto = 1, faltasA = 0, faltasB = 0;
+	static byte cuarto = CUARTO, faltasA = 0, faltasB = 0;
 	static Adafruit_SSD1306 display;
 
 	if (displayFl == true) { //Inicio del display
@@ -365,7 +371,7 @@ void FinCuarto(boolean *crono, byte *faltasA, byte *faltasB, float *time, byte *
 void FinPartido(byte *cuarto, int *puntosA, int*puntosB, boolean *dispPuntosFl, boolean *dispCuartoFl, Adafruit_SSD1306 *display, boolean *displayFl) {
 
 	Save(*puntosA, *puntosB, display, displayFl, dispPuntosFl, dispCuartoFl);
-	*cuarto = 1;
+	*cuarto = CUARTO;
 	*puntosA = 0;
 	*puntosB = 0;
 	*dispPuntosFl = true;
@@ -421,7 +427,13 @@ void Save(int puntosA, int puntosB, Adafruit_SSD1306 *display, boolean *displayF
 			(*display).setCursor(15,20);
 			(*display).print("Partido ");
 			(*display).print(k+1);
-			(*display).setCursor(35, 40);
+			if (log[k].puntosA > 9)
+				if(log[k].puntosB > 9)
+					(*display).setCursor(25, 40);
+				else
+					(*display).setCursor(30, 40);
+			else
+				(*display).setCursor(35, 40);
 			(*display).print(log[k].puntosA);
 			(*display).print(" - ");
 			(*display).print(log[k].puntosB);
