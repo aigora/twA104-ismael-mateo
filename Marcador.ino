@@ -12,6 +12,7 @@
 #include <gfxfont.h>
 #include <Wire.h>
 #include <SPI.h>
+#include <stdlib.h>
 
 #define TCUARTO 600 //s
 #define TBOCINA 2 //s
@@ -19,24 +20,30 @@
 
 typedef struct {
 	int puntosA, puntosB;
-}partido;
+}partido;	
 
-void setup() {
+void Bocina();
+void Encender(int);
+void Apagar(int);
+void FinCuarto(boolean *crono, byte *faltasA, byte *faltasB, float *time, byte *cuarto, boolean *faltasAFl, boolean *faltasBFl, boolean *dispCuartoFl);
+void FinPartido(byte *cuarto, int *puntosA, int*puntosB, boolean *dispPuntosFl, boolean *dispCuartoFl, Adafruit_SSD1306 *display, boolean *displayFl);
+void Save(int puntosA, int puntosB, Adafruit_SSD1306 *display, boolean *displayFl, boolean *dispPuntosFl, boolean *dispCuartoFl);
 
-	pinMode(0, OUTPUT); //Bocina auto
-	pinMode(1, INPUT); //Play pause crono
-	pinMode(2, INPUT); //Reset crono
-	pinMode(3, INPUT); //Faltas A
-	pinMode(4, INPUT); //Faltas B
-	pinMode(11, INPUT); //Continuar al siguiente partido
-	pinMode(12, INPUT); //Mostrar datos al final del partido
+void setup(){
+
+	pinMode(11, OUTPUT); //Bocina auto
+	pinMode(A0, INPUT); //Puntos A++
+	pinMode(A1, INPUT); //Puntos A--
+	pinMode(A2, INPUT); //Puntos B++
+	pinMode(A3, INPUT); //Puntos B--
+	Apagar(11);
 }
 
 void loop() {
 
 	//Asignaciones iniciales
 	static float time = 0, instI = 0, instF = 0;
-	static boolean crono = false, displayFl = true, dispPuntosFl = true, dispTimeFl = true, dispCuartoFl = true, faltasAFl = true, faltasBFl = true;
+	static boolean crono = false, displayFl = true, dispPuntosFl = true, dispCuartoFl = true, faltasAFl = true, faltasBFl = true;
 	static int puntosA = 0, puntosB = 0, tCuarto;
 	static byte cuarto = 1, faltasA = 0, faltasB = 0;
 	static Adafruit_SSD1306 display;
@@ -60,12 +67,12 @@ void loop() {
 	}
 
 	//Tiempo
-	if (digitalRead(1) == HIGH && crono == false) { //Play time
+	if (digitalRead(13) == HIGH && crono == false) { //Play time
 
 		crono = true;
 		delay(DELAY);
 	}
-	if (digitalRead(1) == HIGH && crono == true) { //Pause time
+	if (digitalRead(13) == HIGH && crono == true) { //Pause time
 
 		crono = false;
 		delay(DELAY);
@@ -75,26 +82,22 @@ void loop() {
 
 		time = 0;
 		crono = false;
-		dispTimeFl = true;
 	}
 
 	instI = instF;
 	instF = millis() / 1000;
 	tCuarto = TCUARTO - time;
-	if (crono == true) { //Cuenta tiempo (si activado)
-
+	if (crono == true) //Cuenta tiempo (si activado)
 		time += instF - instI;
-		dispTimeFl = true;
-	}
 
 	//Puntos equipo A
-	if (analogRead(A0) > 800) { //Puntos +1
+	if (digitalRead(A0) == HIGH) { //Puntos +1
 
 		puntosA++;
 		delay(DELAY);
 		dispPuntosFl = true;
 	}
-	if (analogRead(A1) > 800) { //Puntos -1
+	if (digitalRead(A1) == HIGH) { //Puntos -1
 
 		puntosA--;
 		delay(DELAY);
@@ -104,21 +107,21 @@ void loop() {
 		puntosA = 0;
 
 	//Puntos equipo B
-	if (analogRead(A2) > 800) { //Puntos +1
+	if (digitalRead(A2) == HIGH) { //Puntos +1
 
 		puntosB++;
 		delay(DELAY);
 		dispPuntosFl = true;
 	}
-	if (analogRead(A3) > 800) { //Puntos -1
+	if (digitalRead(A3) == HIGH) { //Puntos -1
 
 		puntosB--;
 		delay(DELAY);
 		dispPuntosFl = true;
 	}
-	if(puntosB<0)
-		puntosB=0;
-    
+	if (puntosB < 0)
+		puntosB = 0;
+
 	//Faltas equipo A
 	if (digitalRead(3) == HIGH) { //Faltas +1
 
@@ -183,8 +186,8 @@ void loop() {
 			faltasAFl = false;
 		}
 	}
-	if (faltasA == 6)
-		faltasA = 0;
+	if (faltasA >5)
+		faltasA = 5;
 
 	//Faltas equipo B
 	if (digitalRead(4) == HIGH) { //Faltas +1
@@ -245,44 +248,41 @@ void loop() {
 			Encender(10);
 			pinMode(9, OUTPUT);
 			Apagar(9);
-			pinMode(11, INPUT);
+			pinMode(8, INPUT);
 			delay(DELAY);
 			faltasBFl = false;
 		}
 	}
 	if (faltasB > 5)
-		faltasB = 0;
+		faltasB = 5;
 
 	//Display
-	if (dispTimeFl == true) { //Tiempo
-		if (tCuarto == 600) {
+	if (tCuarto == 600) {//Tiempo
 
-			display.fillRect(35, 15, 70, 25, BLACK);
-			display.setCursor(35, 25);
-			display.print("10:00");
+		display.fillRect(35, 15, 70, 25, BLACK);
+		display.setCursor(35, 25);
+		display.print("10:00");
+	}
+	else {
+
+		display.fillRect(35, 15, 70, 25, BLACK);
+		display.setCursor(35, 25);
+		display.setTextColor(WHITE);
+		display.print("0");
+		display.print((int)tCuarto / 60);
+		display.print(":");
+		if ((tCuarto % 60) < 10) {
+
+			display.print("0");
+			display.print((int)tCuarto % 60);
 		}
 		else {
 
-			display.fillRect(35, 15, 70, 25, BLACK);
-			display.setCursor(35, 25);
-			display.setTextColor(WHITE);
-			display.print("0");
-			display.print((int)tCuarto / 60);
-			display.print(":");
-			if ((tCuarto % 60) < 10) {
-
-				display.print("0");
-				display.print((int)tCuarto % 60);
-			}
-			else {
-
-				display.print((int)(tCuarto % 60));
-			}
+			display.print((int)(tCuarto % 60));
 		}
-		
-		display.display();
-		dispTimeFl = false;
 	}
+
+	display.display();
 
 	if (dispCuartoFl == true) { //Cuarto
 
@@ -293,7 +293,7 @@ void loop() {
 		dispCuartoFl = false;
 	}
 
-	if (dispPuntosFl == true){ //Puntos A y B
+	if (dispPuntosFl == true) { //Puntos A y B
 
 		display.fillRect(5, 45, 25, 25, BLACK);
 		if (puntosA < 10) {
@@ -332,16 +332,16 @@ void loop() {
 
 	//Final
 	if (tCuarto == 0 && crono == true)
-		FinCuarto(&crono, &faltasA, &faltasB, &time, &cuarto, &dispTimeFl, &faltasAFl, &faltasBFl, &dispCuartoFl);
+		FinCuarto(&crono, &faltasA, &faltasB, &time, &cuarto, &faltasAFl, &faltasBFl, &dispCuartoFl);
 	if (cuarto > 4)
-		FinPartido(&cuarto, &puntosA, &puntosB, &dispPuntosFl, &dispCuartoFl, &display, &displayFl, &dispTimeFl);
+		FinPartido(&cuarto, &puntosA, &puntosB, &dispPuntosFl, &dispCuartoFl, &display, &displayFl);
 }
 
 //Funciones
 void Bocina() {
-	Encender(0);
+	Encender(11);
 	delay(1000 * TBOCINA);
-	Apagar(2);
+	Apagar(11);
 }
 void Encender(int Pin) {
 	digitalWrite(Pin, HIGH);
@@ -349,7 +349,7 @@ void Encender(int Pin) {
 void Apagar(int Pin) {
 	digitalWrite(Pin, LOW);
 }
-void FinCuarto(boolean *crono, byte *faltasA, byte *faltasB, float *time, byte *cuarto, boolean *dispTimeFl, boolean *faltasAFl, boolean *faltasBFl, boolean *dispCuartoFl){
+void FinCuarto(boolean *crono, byte *faltasA, byte *faltasB, float *time, byte *cuarto, boolean *faltasAFl, boolean *faltasBFl, boolean *dispCuartoFl){
 
 	*crono = false;
 	Bocina();
@@ -357,65 +357,83 @@ void FinCuarto(boolean *crono, byte *faltasA, byte *faltasB, float *time, byte *
 	*faltasB = 0;
 	*time = 0;
 	*cuarto = *cuarto + 1;
-	*dispTimeFl = true;
 	*faltasAFl = true;
 	*faltasBFl = true;
   if(*cuarto < 5)
 	  *dispCuartoFl = true;
 }
-void FinPartido(byte *cuarto, int *puntosA, int*puntosB, boolean *dispPuntosFl, boolean *dispCuartoFl, Adafruit_SSD1306 *display, boolean *displayFl, boolean *dispTimeFl) {
+void FinPartido(byte *cuarto, int *puntosA, int*puntosB, boolean *dispPuntosFl, boolean *dispCuartoFl, Adafruit_SSD1306 *display, boolean *displayFl) {
 
-	static int cont = 0;
-	cont++;
-	Save(cont, *puntosA, *puntosB, display, displayFl, dispPuntosFl, dispTimeFl, dispCuartoFl);
+	Save(*puntosA, *puntosB, display, displayFl, dispPuntosFl, dispCuartoFl);
 	*cuarto = 1;
 	*puntosA = 0;
 	*puntosB = 0;
 	*dispPuntosFl = true;
 	*dispCuartoFl = true;
 }
-void Save(int cont, int puntosA, int puntosB, Adafruit_SSD1306 *display, boolean *displayFl, boolean *dispPuntosFl, boolean *dispTimeFl, boolean *dispCuartoFl) {
+void Save(int puntosA, int puntosB, Adafruit_SSD1306 *display, boolean *displayFl, boolean *dispPuntosFl, boolean *dispCuartoFl) {
+
+	static int cont = 0;
+	cont++;
 
 	//Guardar resultados
 	partido *log, *aux;
-	if (cont == 1)
-		log = (partido*)malloc(sizeof(partido));
-	else {
-		aux = (partido*)malloc((cont - 1) * sizeof(partido));
-		aux = log;
-		log = (partido*)realloc(log, cont * sizeof(partido));
-		log = aux;
-		free(aux);
+	if (cont == 1) {
+		log = (partido *)malloc(sizeof(partido));
+	}
+	if (cont == 2) {
+		aux = (partido *)malloc(sizeof(partido));
+		aux[0].puntosA = log[0].puntosA;
+		aux[0].puntosB = log[0].puntosB;
+		log = (partido *)realloc(log, 2 * sizeof(partido));
+		log[0].puntosA = aux[0].puntosA;
+		log[0].puntosB = aux[0].puntosB;
+	}
+	if(cont>2) {
+		aux = (partido*)realloc(aux, (cont - 1) * sizeof(partido));
+		for (int i = 0;i < cont - 1;i++) {
+			aux[i].puntosA = log[i].puntosA;
+			aux[i].puntosB = log[i].puntosB;
+		}
+		log = (partido *)realloc(log, cont * sizeof(partido));
+		for (int i = 0;i < cont - 1;i++) {
+			log[i].puntosA = aux[i].puntosA;
+			log[i].puntosB = aux[i].puntosB;
+		}
 	}
 
 	log[cont-1].puntosA = puntosA;
 	log[cont-1].puntosB = puntosB;
 
-	//Parar marcador hasta pulsar boton
-	int i = 0;
-	while (digitalRead(11) != HIGH) {
-		//Mostrar resultados guardados por pantalla
+	//Mostrar resultados guardados por pantalla
+	(*display).fillRect(35, 15, 70, 40, BLACK);
+	(*display).setCursor(36, 15);
+	(*display).print("Pulse");
+	(*display).setCursor(41, 35);
+	(*display).print("CONT");
+	(*display).display();
+
+	int k = 0;
+	while (k<cont) {
+
 		if (digitalRead(12) == HIGH) {
 			(*display).clearDisplay();
 			(*display).setCursor(15,20);
 			(*display).print("Partido ");
-			(*display).print(i+1);
+			(*display).print(k+1);
 			(*display).setCursor(35, 40);
-			(*display).print(log[i].puntosA);
+			(*display).print(log[k].puntosA);
 			(*display).print(" - ");
-			(*display).print(log[i].puntosB);
+			(*display).print(log[k].puntosB);
 			(*display).display();
 			delay(DELAY);
-			i++;
-			if (i == cont)
-				i = 0;
+			k++;
+			while (digitalRead(12) != HIGH) {}
 		}
 	}
 
 	//Flags para reiniciar display
-	(*display).clearDisplay();
 	*displayFl = true;
 	*dispPuntosFl = true;
-	*dispTimeFl = true;
 	*dispCuartoFl = true;
 }
