@@ -1,9 +1,3 @@
-/*
-	Name:       Marcador.ino
-	Created:  09/04/2019 20:59:83
-	Author:     MATEO-LENOVO\Mateo
-*/
-
 #include <Adafruit_SSD1306.h>
 #include <splash.h>
 #include <Adafruit_GFX.h>
@@ -14,10 +8,10 @@
 #include <SPI.h>
 #include <stdlib.h>
 
-#define TCUARTO 5 //s
+#define TCUARTO 600 //s
 #define TBOCINA 2 //s
 #define DELAY 350 //ms
-#define CUARTO 4
+#define CUARTOS 4
 
 typedef struct {
 	int puntosA, puntosB;
@@ -51,7 +45,7 @@ void loop() {
 	static float time = 0, instI = 0, instF = 0;
 	static boolean crono = false, displayFl = true, dispPuntosFl = true, dispCuartoFl = true, faltasAFl = true, faltasBFl = true;
 	static int puntosA = 0, puntosB = 0, tCuarto;
-	static byte cuarto = CUARTO, faltasA = 0, faltasB = 0;
+	static byte cuarto = 5 - CUARTOS, faltasA = 0, faltasB = 0;
 	static Adafruit_SSD1306 display;
 
 	if (displayFl == true) { //Inicio del display
@@ -371,7 +365,7 @@ void FinCuarto(boolean *crono, byte *faltasA, byte *faltasB, float *time, byte *
 void FinPartido(byte *cuarto, int *puntosA, int*puntosB, boolean *dispPuntosFl, boolean *dispCuartoFl, Adafruit_SSD1306 *display, boolean *displayFl) {
 
 	Save(*puntosA, *puntosB, display, displayFl, dispPuntosFl, dispCuartoFl);
-	*cuarto = CUARTO;
+	*cuarto = 5 - CUARTOS;
 	*puntosA = 0;
 	*puntosB = 0;
 	*dispPuntosFl = true;
